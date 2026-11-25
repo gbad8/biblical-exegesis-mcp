@@ -18,6 +18,6 @@
     }
 
     handle {
-        respond "Greek NT Exegesis MCP Server — use /mcp or /health" 404
+        respond "Biblical Exegesis MCP Server (AT Massorético + NT Grego) — use /mcp or /health" 404
     }
 }

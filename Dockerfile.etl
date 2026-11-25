@@ -2,25 +2,26 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 
-COPY GreekNtMcp.sln ./
-COPY src/GreekNtMcp.Domain/GreekNtMcp.Domain.csproj src/GreekNtMcp.Domain/
-COPY src/GreekNtMcp.Infrastructure/GreekNtMcp.Infrastructure.csproj src/GreekNtMcp.Infrastructure/
-COPY src/GreekNtMcp.Etl/GreekNtMcp.Etl.csproj src/GreekNtMcp.Etl/
-RUN dotnet restore src/GreekNtMcp.Etl/GreekNtMcp.Etl.csproj
+COPY BiblicalExegesisMcp.sln ./
+COPY src/BiblicalExegesisMcp.Domain/BiblicalExegesisMcp.Domain.csproj src/BiblicalExegesisMcp.Domain/
+COPY src/BiblicalExegesisMcp.Infrastructure/BiblicalExegesisMcp.Infrastructure.csproj src/BiblicalExegesisMcp.Infrastructure/
+COPY src/BiblicalExegesisMcp.Etl/BiblicalExegesisMcp.Etl.csproj src/BiblicalExegesisMcp.Etl/
+RUN dotnet restore src/BiblicalExegesisMcp.Etl/BiblicalExegesisMcp.Etl.csproj
 
-COPY src/GreekNtMcp.Domain/ src/GreekNtMcp.Domain/
-COPY src/GreekNtMcp.Infrastructure/ src/GreekNtMcp.Infrastructure/
-COPY src/GreekNtMcp.Etl/ src/GreekNtMcp.Etl/
-RUN dotnet publish src/GreekNtMcp.Etl/GreekNtMcp.Etl.csproj -c Release -o /app/publish --no-restore
+COPY src/BiblicalExegesisMcp.Domain/ src/BiblicalExegesisMcp.Domain/
+COPY src/BiblicalExegesisMcp.Infrastructure/ src/BiblicalExegesisMcp.Infrastructure/
+COPY src/BiblicalExegesisMcp.Etl/ src/BiblicalExegesisMcp.Etl/
+RUN dotnet publish src/BiblicalExegesisMcp.Etl/BiblicalExegesisMcp.Etl.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/runtime:10.0-alpine AS runtime
 WORKDIR /app
 
 RUN apk add --no-cache icu-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-    ETL_DATA_DIR=/data/raw
+    ETL_DATA_DIR=/data/raw \
+    ETL_SCHEMA_DIR=/app/schema
 
 COPY --from=build /app/publish .
-COPY db/init/001_schema.sql /app/schema/001_schema.sql
+COPY db/init/ /app/schema/
 
-ENTRYPOINT ["dotnet", "GreekNtMcp.Etl.dll"]
+ENTRYPOINT ["dotnet", "BiblicalExegesisMcp.Etl.dll"]

@@ -2,21 +2,21 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 
-COPY GreekNtMcp.sln ./
-COPY src/GreekNtMcp.Domain/GreekNtMcp.Domain.csproj src/GreekNtMcp.Domain/
-COPY src/GreekNtMcp.Infrastructure/GreekNtMcp.Infrastructure.csproj src/GreekNtMcp.Infrastructure/
-COPY src/GreekNtMcp.Server/GreekNtMcp.Server.csproj src/GreekNtMcp.Server/
-RUN dotnet restore src/GreekNtMcp.Server/GreekNtMcp.Server.csproj
+COPY BiblicalExegesisMcp.sln ./
+COPY src/BiblicalExegesisMcp.Domain/BiblicalExegesisMcp.Domain.csproj src/BiblicalExegesisMcp.Domain/
+COPY src/BiblicalExegesisMcp.Infrastructure/BiblicalExegesisMcp.Infrastructure.csproj src/BiblicalExegesisMcp.Infrastructure/
+COPY src/BiblicalExegesisMcp.Server/BiblicalExegesisMcp.Server.csproj src/BiblicalExegesisMcp.Server/
+RUN dotnet restore src/BiblicalExegesisMcp.Server/BiblicalExegesisMcp.Server.csproj
 
-COPY src/GreekNtMcp.Domain/ src/GreekNtMcp.Domain/
-COPY src/GreekNtMcp.Infrastructure/ src/GreekNtMcp.Infrastructure/
-COPY src/GreekNtMcp.Server/ src/GreekNtMcp.Server/
-RUN dotnet publish src/GreekNtMcp.Server/GreekNtMcp.Server.csproj -c Release -o /app/publish --no-restore
+COPY src/BiblicalExegesisMcp.Domain/ src/BiblicalExegesisMcp.Domain/
+COPY src/BiblicalExegesisMcp.Infrastructure/ src/BiblicalExegesisMcp.Infrastructure/
+COPY src/BiblicalExegesisMcp.Server/ src/BiblicalExegesisMcp.Server/
+RUN dotnet publish src/BiblicalExegesisMcp.Server/BiblicalExegesisMcp.Server.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 
-# Full ICU support is required for polytonic Greek Unicode normalization (FormD/FormC)
+# Full ICU support is required for polytonic Greek and Hebrew Unicode normalization
 RUN apk add --no-cache icu-libs wget && adduser -D -H -u 10001 appuser
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     ASPNETCORE_URLS=http://+:8080 \
@@ -26,4 +26,4 @@ COPY --from=build /app/publish .
 USER appuser
 
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "GreekNtMcp.Server.dll"]
+ENTRYPOINT ["dotnet", "BiblicalExegesisMcp.Server.dll"]

@@ -34,7 +34,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-exegesis}:${POSTGRES_PASSWORD:-exegesis_dev_password}@db:5432/${POSTGRES_DB:-greek_nt}
       ETL_DATA_DIR: /data/raw
-      ETL_SCHEMA_PATH: /app/schema/001_schema.sql
+      ETL_SCHEMA_DIR: /app/schema
     volumes:
       - raw_datasets:/data/raw
 

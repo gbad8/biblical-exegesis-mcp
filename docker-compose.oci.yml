@@ -1,7 +1,23 @@
-# Production override for Oracle Cloud Always Free (OCI Ampere A1 arm64 or E2.1.Micro amd64)
+# Production override tuned for Oracle Cloud Always Free E2.1.Micro (1 GB RAM, amd64)
+# Also runs natively on Ampere A1 Flex (arm64).
 # Usage: docker compose -f docker-compose.yml -f docker-compose.oci.yml up -d --build
 services:
   db:
+    command:
+      - postgres
+      - -c
+      - shared_buffers=96MB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=48MB
+      - -c
+      - max_connections=25
+    mem_limit: 288m
+
+  etl:
+    environment:
+      DOTNET_GCHeapHardLimit: "0x14000000" # 320 MB GC cap during ETL
     mem_limit: 384m
 
   mcp-server:
@@ -9,9 +25,10 @@ services:
     ports: !reset []
     expose:
       - "8080"
-    mem_limit: 384m
+    mem_limit: 288m
     environment:
       REQUIRE_API_KEY: "true"
+      DOTNET_GCHeapHardLimit: "0x10000000" # 256 MB GC cap for 1 GB VM safety
 
   caddy:
     image: caddy:2-alpine
@@ -29,7 +46,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    mem_limit: 128m
+    mem_limit: 96m
 
 volumes:
   caddy_data:

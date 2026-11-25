@@ -5,8 +5,8 @@ WORKDIR /src
 RUN apk add --no-cache icu-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
-COPY GreekNtMcp.sln ./
+COPY BiblicalExegesisMcp.sln ./
 COPY src/ src/
-RUN dotnet restore GreekNtMcp.sln
+RUN dotnet restore BiblicalExegesisMcp.sln
 
-ENTRYPOINT ["dotnet", "test", "GreekNtMcp.sln", "--no-restore", "--verbosity", "normal"]
+ENTRYPOINT ["dotnet", "test", "BiblicalExegesisMcp.sln", "--no-restore", "--verbosity", "normal"]
