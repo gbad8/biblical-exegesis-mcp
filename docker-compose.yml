@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-exegesis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-exegesis_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-greek_nt}
+    command:
+      - postgres
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - work_mem=8MB
+      - -c
+      - max_connections=40
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-exegesis} -d ${POSTGRES_DB:-greek_nt}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  etl:
+    build:
+      context: .
+      dockerfile: Dockerfile.etl
+    profiles: ["etl"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-exegesis}:${POSTGRES_PASSWORD:-exegesis_dev_password}@db:5432/${POSTGRES_DB:-greek_nt}
+      ETL_DATA_DIR: /data/raw
+      ETL_SCHEMA_PATH: /app/schema/001_schema.sql
+    volumes:
+      - raw_datasets:/data/raw
+
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${MCP_PORT:-8080}:8080"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-exegesis}:${POSTGRES_PASSWORD:-exegesis_dev_password}@db:5432/${POSTGRES_DB:-greek_nt}
+      MCP_API_KEY: ${MCP_API_KEY:-}
+      ASPNETCORE_URLS: http://+:8080
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  raw_datasets:

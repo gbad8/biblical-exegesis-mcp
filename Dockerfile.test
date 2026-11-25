@@ -1,0 +1,12 @@
+# Containerized xUnit test runner (.NET 10 LTS)
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine
+WORKDIR /src
+
+RUN apk add --no-cache icu-libs
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+
+COPY GreekNtMcp.sln ./
+COPY src/ src/
+RUN dotnet restore GreekNtMcp.sln
+
+ENTRYPOINT ["dotnet", "test", "GreekNtMcp.sln", "--no-restore", "--verbosity", "normal"]

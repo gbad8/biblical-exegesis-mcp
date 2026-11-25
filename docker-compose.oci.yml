@@ -1,0 +1,36 @@
+# Production override for Oracle Cloud Always Free (OCI Ampere A1 arm64 or E2.1.Micro amd64)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.oci.yml up -d --build
+services:
+  db:
+    mem_limit: 384m
+
+  mcp-server:
+    # Behind Caddy on internal Docker network only (no direct public port 8080)
+    ports: !reset []
+    expose:
+      - "8080"
+    mem_limit: 384m
+    environment:
+      REQUIRE_API_KEY: "true"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      MCP_DOMAIN: ${MCP_DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    mem_limit: 128m
+
+volumes:
+  caddy_data:
+  caddy_config:

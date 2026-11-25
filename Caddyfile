@@ -1,0 +1,23 @@
+{$MCP_DOMAIN:localhost} {
+    encode zstd gzip
+
+    # Healthcheck endpoint (public or monitorable without buffering)
+    handle /health {
+        reverse_proxy mcp-server:8080
+    }
+
+    # MCP Streamable HTTP / SSE endpoint — disable response buffering for streaming
+    handle /mcp* {
+        reverse_proxy mcp-server:8080 {
+            flush_interval -1
+            transport http {
+                read_timeout 0
+                write_timeout 0
+            }
+        }
+    }
+
+    handle {
+        respond "Greek NT Exegesis MCP Server — use /mcp or /health" 404
+    }
+}

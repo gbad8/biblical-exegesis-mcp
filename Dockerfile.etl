@@ -1,0 +1,26 @@
+# Multi-arch (linux/amd64 + linux/arm64) .NET 10 LTS ETL Runner
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+WORKDIR /src
+
+COPY GreekNtMcp.sln ./
+COPY src/GreekNtMcp.Domain/GreekNtMcp.Domain.csproj src/GreekNtMcp.Domain/
+COPY src/GreekNtMcp.Infrastructure/GreekNtMcp.Infrastructure.csproj src/GreekNtMcp.Infrastructure/
+COPY src/GreekNtMcp.Etl/GreekNtMcp.Etl.csproj src/GreekNtMcp.Etl/
+RUN dotnet restore src/GreekNtMcp.Etl/GreekNtMcp.Etl.csproj
+
+COPY src/GreekNtMcp.Domain/ src/GreekNtMcp.Domain/
+COPY src/GreekNtMcp.Infrastructure/ src/GreekNtMcp.Infrastructure/
+COPY src/GreekNtMcp.Etl/ src/GreekNtMcp.Etl/
+RUN dotnet publish src/GreekNtMcp.Etl/GreekNtMcp.Etl.csproj -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0-alpine AS runtime
+WORKDIR /app
+
+RUN apk add --no-cache icu-libs
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    ETL_DATA_DIR=/data/raw
+
+COPY --from=build /app/publish .
+COPY db/init/001_schema.sql /app/schema/001_schema.sql
+
+ENTRYPOINT ["dotnet", "GreekNtMcp.Etl.dll"]
