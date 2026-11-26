@@ -51,6 +51,13 @@ public sealed class ExegesisRepository
         _dataSource = dataSource;
     }
 
+    public async Task<bool> PingAsync(CancellationToken ct = default)
+    {
+        await using var conn = await _dataSource.OpenConnectionAsync(ct);
+        var result = await conn.ExecuteScalarAsync<int>(new CommandDefinition("SELECT 1;", cancellationToken: ct));
+        return result == 1;
+    }
+
     public async Task<HealthStatus> CheckHealthAsync(CancellationToken ct = default)
     {
         await using var conn = await _dataSource.OpenConnectionAsync(ct);

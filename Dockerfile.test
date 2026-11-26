@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine
 WORKDIR /src
 
-RUN apk add --no-cache icu-libs
+RUN apk add --no-cache icu-libs icu-data-full
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 COPY BiblicalExegesisMcp.sln ./

@@ -17,18 +17,19 @@ services:
 
   etl:
     environment:
-      DOTNET_GCHeapHardLimit: "0x14000000" # 320 MB GC cap during ETL
+      DOTNET_GCHeapHardLimit: "0x11000000" # 272 MB managed heap cap inside 384 MB container (112 MB native headroom)
     mem_limit: 384m
 
   mcp-server:
-    # Behind Caddy on internal Docker network only (no direct public port 8080)
+    # Behind Caddy on internal Docker network only (no direct public port 8080; requires Docker Compose >= v2.24)
     ports: !reset []
     expose:
       - "8080"
     mem_limit: 288m
     environment:
+      MCP_API_KEY: ${MCP_API_KEY:?Defina MCP_API_KEY no arquivo .env antes de subir com docker-compose.oci.yml}
       REQUIRE_API_KEY: "true"
-      DOTNET_GCHeapHardLimit: "0x10000000" # 256 MB GC cap for 1 GB VM safety
+      DOTNET_GCHeapHardLimit: "0xC000000" # 192 MB managed heap cap inside 288 MB container (96 MB native headroom)
 
   caddy:
     image: caddy:2-alpine

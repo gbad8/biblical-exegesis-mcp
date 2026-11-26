@@ -51,9 +51,8 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-exegesis}:${POSTGRES_PASSWORD:-exegesis_dev_password}@db:5432/${POSTGRES_DB:-greek_nt}
       MCP_API_KEY: ${MCP_API_KEY:-}
-      ASPNETCORE_URLS: http://+:8080
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health/live || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5

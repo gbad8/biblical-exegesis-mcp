@@ -17,9 +17,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 
 # Full ICU support is required for polytonic Greek and Hebrew Unicode normalization
-RUN apk add --no-cache icu-libs wget && adduser -D -H -u 10001 appuser
+RUN apk add --no-cache icu-libs icu-data-full wget && adduser -D -H -u 10001 appuser
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-    ASPNETCORE_URLS=http://+:8080 \
     ASPNETCORE_ENVIRONMENT=Production
 
 COPY --from=build /app/publish .

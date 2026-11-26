@@ -19,7 +19,13 @@ public static class PostgresConnectionFactory
         if (!raw.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
             !raw.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
         {
-            return raw;
+            var rawBuilder = new NpgsqlConnectionStringBuilder(raw);
+            if (!raw.Contains("gss encryption mode", StringComparison.OrdinalIgnoreCase) &&
+                !raw.Contains("gssencryptionmode", StringComparison.OrdinalIgnoreCase))
+            {
+                rawBuilder.GssEncryptionMode = GssEncryptionMode.Disable;
+            }
+            return rawBuilder.ConnectionString;
         }
 
         var uri = new Uri(raw);
@@ -33,7 +39,8 @@ public static class PostgresConnectionFactory
             Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty,
             Pooling = true,
             MinPoolSize = 1,
-            MaxPoolSize = 20
+            MaxPoolSize = 20,
+            GssEncryptionMode = GssEncryptionMode.Disable
         };
 
         if (!string.IsNullOrEmpty(uri.Query))
@@ -46,6 +53,8 @@ public static class PostgresConnectionFactory
                 var val = Uri.UnescapeDataString(kv[1]);
                 if (key == "sslmode" && Enum.TryParse<SslMode>(val, ignoreCase: true, out var ssl))
                     builder.SslMode = ssl;
+                else if (key == "gssencmode" && Enum.TryParse<GssEncryptionMode>(val, ignoreCase: true, out var gss))
+                    builder.GssEncryptionMode = gss;
             }
         }
 

@@ -32,6 +32,27 @@ var app = builder.Build();
 
 app.UseMiddleware<ApiKeyAuthMiddleware>();
 
+app.MapGet("/health/live", async (ExegesisRepository repo, CancellationToken ct) =>
+{
+    try
+    {
+        var ok = await repo.PingAsync(ct);
+        return Results.Json(new
+        {
+            status = ok ? "alive" : "unhealthy",
+            database = ok
+        }, statusCode: ok ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new
+        {
+            status = "unhealthy",
+            error = ex.Message
+        }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
+
 app.MapGet("/health", async (ExegesisRepository repo, CancellationToken ct) =>
 {
     try

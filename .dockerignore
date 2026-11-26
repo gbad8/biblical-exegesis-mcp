@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.env.*
+.vs
+**/bin
+**/obj
+TestResults
+data
+*.user
+*.suo
